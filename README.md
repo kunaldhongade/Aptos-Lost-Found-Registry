@@ -1,15 +1,15 @@
-# Micro-Insurance System - Frontend
+# Lost and Found Registry - Frontend
 
-This is the frontend for the **Micro-Insurance System** built on the **Aptos Blockchain**. The platform enables users to purchase micro-insurance policies, request claims, and receive payouts, with all actions securely managed via smart contracts.
+This is the frontend for the **Lost and Found Registry** built on the **Aptos Blockchain**. The platform enables users to register lost items, submit found item reports, and manage claims of lost property. All interactions are handled securely through smart contracts on the Aptos blockchain.
 
 ## Key Features
 
-- **View Available Policies**: Users can browse through a list of pre-created insurance policies available for purchase.
-- **Purchase Insurance Policies**: Users can purchase micro-insurance policies directly using Aptos native token (**APT**).
-- **Claim Requests**: Users can request insurance claims after purchasing a policy.
-- **Claim Verification**: Claims are reviewed and verified by policy creators.
-- **Payouts**: Verified claims trigger payouts of the specified claimable amount directly to the user.
-- **Policy Management**: Policy creators can view and manage policies and verify customer claims.
+- **Register Lost Items**: Users can register their lost items with descriptions and set a reward for finders.
+- **Submit Found Items**: Finders can submit found items with a description for verification.
+- **Verify Finders**: Item owners can verify finders and transfer rewards for successfully returned items.
+- **View Lost Items**: Users can browse all registered lost items.
+- **View Found Item Submissions**: Owners can view submissions from finders for specific lost items.
+- **Manage Claims**: Item owners can track the status of their lost items and verify claims.
 
 ## Prerequisites
 
@@ -26,7 +26,7 @@ Before running the project, ensure you have the following installed:
 First, clone the project repository to your local machine:
 
 ```bash
-cd micro-insurance-system
+cd lost-and-found-registry
 ```
 
 ### 2. Install Dependencies
@@ -48,12 +48,12 @@ yarn install
 You need to configure the environment variables for the frontend to interact with the Aptos blockchain. Create a `.env` file in the project root and add the following variables:
 
 ```bash
-PROJECT_NAME=MicroInsuranceSystem
+PROJECT_NAME=LostAndFoundRegistry
 VITE_APP_NETWORK=testnet
 VITE_MODULE_ADDRESS=0x<your_contract_address>
 ```
 
-Adjust the `NODE_URL` and `FAUCET_URL` if you are using **Testnet** or **Mainnet** instead of Devnet.
+Replace `<your_contract_address>` with the actual address of your deployed smart contract.
 
 ### 4. Run the Development Server
 
@@ -75,40 +75,36 @@ The app will be available at `http://localhost:5173`.
 
 ### 1. Connect Wallet
 
-Upon opening the application, you'll be prompted to connect your Aptos wallet (e.g., Petra Wallet). This allows you to interact with the blockchain and perform operations such as purchasing policies and requesting claims.
+Upon opening the application, you'll be prompted to connect your Aptos wallet (e.g., Petra Wallet). This allows you to interact with the blockchain and perform operations like registering lost items and verifying found submissions.
 
-### 2. View Available Policies
+### 2. Register a Lost Item
 
-Users can browse the **Policies** section to view the available insurance policies. Each policy will display details such as:
+To register a lost item:
 
-- Policy description
-- Premium amount
-- Maximum claimable amount
-- Type (e.g., health, auto)
-- Yearly or one-time payment options
+- Navigate to the **Register Lost Item** page.
+- Fill in the item's title, description, and reward amount.
+- Submit the form to register your lost item on the blockchain.
 
-### 3. Purchase Policy
+### 3. Submit Found Item
 
-To purchase an insurance policy:
+Finders can submit found items by:
 
-- Select the policy you want to purchase.
-- The platform will prompt you to pay the premium amount in **APT** via your connected Aptos wallet.
-- Once purchased, the policy will be added to your list of active policies.
+- Navigating to the **Submit Found Item** page.
+- Selecting the lost item from the list and providing a description of the found item.
+- Submitting the form to notify the owner of the found item.
 
-### 4. Request Claim
+### 4. Verify Finder and Transfer Reward
 
-To request an insurance claim:
+As the owner of a lost item:
 
-- Navigate to **My Policies** and select the policy you want to claim.
-- Click on **Request Claim**. The request will be submitted to the policy creator for verification.
+- Go to the **My Items** section and select the item with a found submission.
+- Review the finder's submission and verify if it's accurate.
+- Upon verification, the platform will automatically transfer the reward to the finder using Aptos tokens (APT).
 
-### 5. Claim Verification and Payout
+### 5. View Lost and Found Items
 
-For policy creators, after receiving a claim request:
-
-- Go to **Manage Policies** and select the relevant policy.
-- Review the claim request and click **Verify** if the claim is legitimate.
-- Once verified, the claim will be automatically paid out to the customer.
+- Browse all registered lost items via the **View Lost Items** section.
+- View all submissions for a specific lost item in the **Found Submissions** section.
 
 ## Scripts
 
@@ -128,4 +124,4 @@ The project uses the following key dependencies:
 
 ## Conclusion
 
-This frontend allows users to seamlessly interact with the **Micro-Insurance System**, providing a decentralized way to manage policies, request claims, and handle payouts. With a user-friendly interface and blockchain security, users and policy creators can manage their insurance needs transparently.
+This frontend allows users to easily interact with the **Lost and Found Registry**, providing a decentralized way to manage lost item registration, found item submissions, and reward distribution. With a secure and transparent system powered by the Aptos blockchain, users can seamlessly track and resolve lost-and-found claims.

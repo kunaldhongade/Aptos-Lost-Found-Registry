@@ -1,121 +1,117 @@
-# MicroInsuranceSystem Smart Contract
+# Lost and Found Registry Smart Contract
 
 ## Overview
 
-This Move module provides a decentralized micro-insurance system, enabling users to purchase insurance policies, claim payouts, and manage insurance policies through smart contracts on the Aptos blockchain. The module features global storage for policies and includes essential insurance functionalities such as policy creation, premium payments, claim requests, verification, and payouts.
+The **LostAndFoundRegistry** smart contract is designed to facilitate a decentralized registry for lost items. It allows owners to register lost items, finders to submit found item claims, and owners to verify finders and reward them in the form of Aptos tokens (APT). The contract also maintains a registry of all items and finders' submissions, ensuring transparency and immutability.
 
-## Key Features
+### Key Functionalities:
 
-- **Global Policy Management**: Stores all policies under a single global address.
-- **Policy Creation**: Allows creators to issue new policies with parameters like premium amount, policy type, and maximum claimable amount.
-- **Policy Purchase**: Customers can purchase a pre-defined insurance policy by paying the specified premium.
-- **Claim Process**: Insured customers can request and receive claim payouts upon verification.
-- **Claim Verification**: Policy creators verify and approve customer claims.
-- **Views for Policies**: Customers and creators can view policies based on ID, creator, or customer.
+- **Register Lost Items:** Owners can register lost items with details such as title, description, and reward.
+- **Submit Found Items:** Finders can register their discovery of lost items with relevant descriptions.
+- **Verify Finders:** Owners can verify a finder’s claim and transfer the promised reward if the claim is valid.
+- **View Items and Finders:** Users can view all registered lost items and finders, as well as query specific items by their unique IDs.
 
-## Installation & Usage
+---
 
-### 1. Initialize Global Policy System
+## Table of Contents
 
-Before creating or managing policies, the global policy system must be initialized by invoking:
+1. [Initialization](#initialization)
+2. [Key Functions](#key-functions)
+3. [Views](#views)
+4. [Error Codes](#error-codes)
 
-```move
-init_global_policy_system(account: &signer)
-```
+---
 
-This initializes a collection that will store all policies.
+## Initialization
 
-### 2. Create a New Policy
+Before the contract can be used, the registry must be initialized.
 
-Creators can define new policies with attributes such as description, premium amount, payment frequency, and claimable limits:
+- **Function:** `init_registry(account: &signer)`
+  - Initializes the global lost items registry. Can only be called once.
+  - Moves the item registry to the system address, ensuring a global reference point.
 
-```move
-create_policy(
-  account: &signer,
-  description: String,
-  premium_amount: u64,
-  yearly: bool,
-  max_claimable: u64,
-  type_of_policy: String
-)
-```
+---
 
-### 3. Purchase a Policy
+## Key Functions
 
-Users (customers) can purchase a policy by its unique ID. This action transfers the premium amount to the policy creator:
+### 1. Register Lost Item
 
-```move
-purchase_policy(account: &signer, policy_id: u64)
-```
+Owners can register lost items to the registry.
 
-### 4. Request a Claim
+- **Function:** `register_lost_item(account: &signer, title: String, description: String, reward: u64)`
+  - Registers a lost item with a unique ID.
+  - `reward` specifies the amount (in APT) to reward a verified finder.
 
-After purchasing a policy, customers can request a claim under the policy:
+### 2. Register Found Item
 
-```move
-request_claim(account: &signer, policy_id: u64)
-```
+Finders can register their claim of finding a lost item.
 
-### 5. Verify a Claim
+- **Function:** `register_found_item(account: &signer, unique_id: u64, description: String)`
+  - Registers a finder’s submission for a specific item.
+  - Multiple finders can submit claims for the same item.
 
-The policy creator must verify and approve a claim request:
+### 3. Verify Finder
 
-```move
-verify_claim(account: &signer, policy_id: u64, customer: address)
-```
+Owners can verify a finder’s claim and reward them for finding the item.
 
-### 6. Payout for a Claim
+- **Function:** `verify_finder(account: &signer, unique_id: u64, finder_address: address)`
+  - Only the owner of the item can verify and reward the finder.
+  - Transfers the reward to the verified finder.
+  - Marks the item as "claimed" and finalizes the process.
 
-Once a claim is verified, the policy creator can initiate the payout process, transferring the claimable amount to the customer:
+---
 
-```move
-payout_claim(account: &signer, policy_id: u64)
-```
+## Views
 
-### 7. View All Policies
+### 1. View All Items
 
-Retrieve a list of all policies in the system:
+View all lost items currently registered in the system.
 
-```move
-view_all_policies(): vector<Policy>
-```
+- **Function:** `view_all_items()`
+  - Returns a list of all lost items.
 
-### 8. View Policy by ID
+### 2. View Item by ID
 
-Retrieve a specific policy by its ID:
+Retrieve details of a specific lost item by its unique ID.
 
-```move
-view_policy_by_id(policy_id: u64): Policy
-```
+- **Function:** `view_item_by_id(unique_id: u64)`
+  - Returns the details of the lost item with the given ID.
 
-### 9. View Policies by Creator
+### 3. View Finders for an Item
 
-Retrieve all policies created by a specific creator:
+Retrieve all finders who submitted claims for a specific item.
 
-```move
-view_policies_by_creator(creator: address): vector<Policy>
-```
+- **Function:** `view_finders_by_item(unique_id: u64)`
+  - Returns a list of finders for the specified item.
 
-### 10. View Policies by Customer
+### 4. View Items by Owner
 
-Retrieve all policies a specific customer has purchased:
+Retrieve all items registered by a specific owner.
 
-```move
-view_policies_by_customer(customer: address): vector<Policy>
-```
+- **Function:** `view_items_by_owner(owner: address)`
+  - Returns all items owned by the specified address.
+
+### 5. View Items Found by a Finder
+
+Retrieve all items a specific finder has registered as found.
+
+- **Function:** `view_items_found_by_finder(finder: address)`
+  - Returns all items found by the specified address.
+
+---
 
 ## Error Codes
 
-- `ERR_POLICY_NOT_FOUND (1)`: The specified policy does not exist.
-- `ERR_NOT_CUSTOMER (2)`: The caller is not a customer of the policy.
-- `ERR_PREMIUM_NOT_PAID (3)`: The premium has not been paid for the policy.
-- `ERR_CLAIM_ALREADY_MADE (4)`: The claim has already been made.
-- `ERR_NO_POLICIES (5)`: No policies exist in the system.
-- `ERR_ALREADY_INITIALIZED (6)`: The global policy system has already been initialized.
-- `ERR_CLAIM_NOT_ALLOWED (7)`: The claim is not allowed (e.g., not verified).
-- `ERR_UNAUTHORIZED (8)`: The caller is not authorized to perform the action.
+- **ERR_ITEM_NOT_FOUND (1):** The specified item does not exist.
+- **ERR_ITEM_ALREADY_CLAIMED (2):** The item has already been claimed by a finder.
+- **ERR_NOT_OWNER (3):** The caller is not the owner of the item.
+- **ERR_NOT_FINDER (4):** The finder is not registered for this item.
+- **ERR_NO_ACTIVE_ITEMS (5):** No active items are registered in the system.
+- **ERR_ALREADY_VERIFIED (6):** The finder has already been verified.
+- **ERR_ALREADY_INITIALIZED (7):** The registry has already been initialized.
 
-## Dependencies
+---
 
-- **AptosCoin**: The contract utilizes the native Aptos coin for premium payments and claim payouts.
-- **Std Modules**: Includes standard modules like `signer`, `string`, `vector`, and `coin`.
+## Conclusion
+
+This smart contract enables a decentralized, transparent system for managing lost and found items, rewarding finders using Aptos tokens. It provides flexibility for item owners and finders to interact seamlessly, while ensuring accountability through verified claims and on-chain transactions.
