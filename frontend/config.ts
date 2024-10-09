@@ -11,16 +11,16 @@ export const config: Config = {
   },
 
   defaultCollection: {
-    name: "Lorem Ipsum",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris congue convallis augue in pharetra.",
+    name: "Lost & Found Collection",
+    description: "A unique collection of lost and found items, each with its own story and history.",
     image: Placeholder1,
   },
 
   ourStory: {
     title: "Our Story",
-    subTitle: "Innovative Insurance Platform on Aptos",
+    subTitle: "Innovative Lost Item Registry on Aptos",
     description:
-      "Our Insurance Platform Offers Various Insurance Products to Protect Your Assets. We Provide a Secure and Transparent Platform for Buying and Selling Insurance. Join Our Community to Get Started!",
+      "Our platform offers a secure and transparent way to register and claim lost items. Join our community to help reunite lost items with their rightful owners!",
     discordLink: "https://discord.com",
     images: [Placeholder1, Placeholder2, Placeholder3],
   },
@@ -57,42 +57,38 @@ export const config: Config = {
 
     questions: [
       {
-        title: "What is Micro Insurance?",
+        title: "How does the Lost & Found system work?",
         description:
-          "Micro insurance is a type of insurance designed to be affordable for low-income individuals or groups, providing coverage for specific risks such as health, life, or property.",
+          "Our system allows users to register lost items and search for found items. If a match is found, the system facilitates communication between the finder and the owner.",
       },
       {
-        title: "How do I purchase an insurance policy?",
-        description: `To purchase an insurance policy, follow these steps:
-        Navigate to the "Buy Insurance" section in the app.
-        Select the type of insurance you need.
-        Fill in the required details and submit your application.
-        Make the payment through the available payment methods.
-        Confirm the transaction in your connected wallet.`,
+        title: "How do I register a lost item?",
+        description: `To register a lost item, follow these steps:
+        Navigate to the "Register Lost Item" section in the app.
+        Fill in the required details about the item.
+        Submit the registration form.
+        Your item will be added to our database of lost items.`,
       },
       {
-        title: "What types of insurance products are available?",
+        title: "How do I search for a found item?",
         description:
-          "We offer a variety of insurance products including health insurance, life insurance, and property insurance. Each product is tailored to meet the specific needs of our customers.",
+          "To search for a found item, navigate to the 'Search Found Items' section in the app. You can filter the search results based on various criteria such as item type, location, and date found.",
       },
       {
-        title: "How can I file a claim?",
-        description: `To file a claim, follow these steps:
-        Navigate to the "File a Claim" section in the app.
-        Provide the necessary details about the incident.
-        Submit any required documentation.
-        Our team will review your claim and get back to you with the next steps.`,
+        title: "What should I do if I find a lost item?",
+        description: `If you find a lost item, follow these steps:
+        Navigate to the "Report Found Item" section in the app.
+        Provide the necessary details about the item.
+        Submit the report.
+        Our system will try to match the item with any registered lost items.`,
       },
       {
-        title: "What should I do if I encounter an issue with my policy?",
-        description: `If you encounter an issue with your policy, consider the following:
-        Ensure that all your details are correctly entered.
-        Refresh the app and check your policy details again.
-        Contact our support team for further assistance.`,
+        title: "How can I contact the owner of a found item?",
+        description: `If a match is found between a lost item and a found item, our system will facilitate communication between the finder and the owner through a secure messaging platform.`,
       },
       {
-        title: "How can I view my policy details?",
-        description: `You can view your policy details by navigating to the "My Policies" section of the app. This section will display all your active policies, including coverage details, premium amounts, and expiration dates.`,
+        title: "Is there a reward for finding a lost item?",
+        description: `Yes, our platform offers a reward system for finders of lost items. The reward details will be provided by the owner of the lost item during the registration process.`,
       },
     ],
   },

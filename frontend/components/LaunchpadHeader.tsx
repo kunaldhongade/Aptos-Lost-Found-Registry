@@ -34,19 +34,19 @@ export const LaunchpadHeader: FC<LaunchpadHeaderProps> = ({ title }) => {
           >
             Home
           </Link>
-          {location.pathname === "/buy-insurance" ? (
+          {location.pathname === "/list-findings" ? (
             <Link
               className={`${buttonVariants({ variant: "link" })} w-24 text-center`} // Fixed width with center alignment
-              to={"/create-insurance"}
+              to={"/register-item"}
             >
-              Create Insurance
+              Register Lost Item
             </Link>
           ) : (
             <Link
               className={`${buttonVariants({ variant: "link" })} w-24 text-center`} // Fixed width with center alignment
-              to={"/buy-insurance"}
+              to={"/list-findings"}
             >
-              Buy Insurance
+              Finder
             </Link>
           )}
           <div className="flex-shrink-0">

@@ -7,40 +7,26 @@ import { MODULE_ADDRESS } from "@/constants";
 import { aptosClient } from "@/utils/aptosClient";
 import { InputViewFunctionData } from "@aptos-labs/ts-sdk";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
-import type { RadioChangeEvent } from "antd";
-import { Form, message, Radio, Select, Space, Tag, Typography } from "antd";
+import { Form, message, Tag, Typography } from "antd";
 import { useEffect, useState } from "react";
 const { Paragraph } = Typography;
 
 export function CreateCollection() {
   const { account, signAndSubmitTransaction } = useWallet();
-  const [policyCreatedBy, setPolicyCreatedBy] = useState<Policy[]>([]);
+  const [itemRegisterBy, setItemRegisterBy] = useState<LostItem[]>([]);
 
-  const [value, setValue] = useState(true);
-
-  const onChange = (e: RadioChangeEvent) => {
-    console.log("radio checked", e.target.value);
-    setValue(e.target.value);
-  };
-
-  interface Policy {
-    id: number;
+  interface LostItem {
+    title: string;
     description: string;
-    premium_amount: number;
-    yearly: boolean;
-    type_of_policy: string;
-    claimable_amount: number;
-    max_claimable: number;
-    total_premium_collected: number;
-    creator: string;
-    customers: {
-      customer: string;
-      is_claimed: boolean;
-      is_requested: boolean;
+    reward: number;
+    is_claimed: boolean;
+    owner: string;
+    finders: {
+      description: string;
+      finder: string;
       is_verified: boolean;
-      premium_paid: boolean;
     }[];
-    policy_id: number;
+    unique_id: number;
   }
 
   const convertAmountFromHumanReadableToOnChain = (value: number, decimal: number) => {
@@ -51,10 +37,9 @@ export function CreateCollection() {
     return value / Math.pow(10, decimal);
   };
 
-  const handleCreatePolicy = async (values: Policy) => {
+  const handleListLostItem = async (values: LostItem) => {
     try {
-      const premiumAMT = convertAmountFromHumanReadableToOnChain(values.premium_amount, 8);
-      const maxClaimable = convertAmountFromHumanReadableToOnChain(values.max_claimable, 8);
+      const rewardAMT = convertAmountFromHumanReadableToOnChain(values.reward, 8);
 
       if (!values.description) {
         values.description = "None";
@@ -63,14 +48,14 @@ export function CreateCollection() {
       const transaction = await signAndSubmitTransaction({
         sender: account?.address,
         data: {
-          function: `${MODULE_ADDRESS}::MicroInsuranceSystem::create_policy`,
-          functionArguments: [values.description, premiumAMT, values.yearly, maxClaimable, values.type_of_policy],
+          function: `${MODULE_ADDRESS}::LostAndFoundRegistry::register_lost_item`,
+          functionArguments: [values.title, values.description, rewardAMT],
         },
       });
 
       await aptosClient().waitForTransaction({ transactionHash: transaction.hash });
-      message.success("Policy is Created Successfully!");
-      fetchAllPoliciesByCreator();
+      message.success("Item Listed Successfully!");
+      fetchAllItemsListBy();
     } catch (error) {
       if (typeof error === "object" && error !== null && "code" in error && (error as { code: number }).code === 4001) {
         message.error("Transaction rejected by user.");
@@ -82,23 +67,23 @@ export function CreateCollection() {
         }
         console.error("Transaction Error:", error);
       }
-      console.log("Error creating Policy.", error);
+      console.log("Error Listing Item.", error);
     }
   };
 
-  const handleVerifyClaim = async (values: { policy_id: number; customer: string }) => {
+  const handleVerifyClaim = async (values: { item_id: number; finder: string }) => {
     try {
       const transaction = await signAndSubmitTransaction({
         sender: account?.address,
         data: {
-          function: `${MODULE_ADDRESS}::MicroInsuranceSystem::verify_claim`,
-          functionArguments: [values.policy_id, values.customer],
+          function: `${MODULE_ADDRESS}::LostAndFoundRegistry::verify_finder`,
+          functionArguments: [values.item_id, values.finder],
         },
       });
 
       await aptosClient().waitForTransaction({ transactionHash: transaction.hash });
-      message.success("Claim is Verified!");
-      fetchAllPoliciesByCreator();
+      message.success("Claim Verified Successfully!");
+      fetchAllItemsListBy();
     } catch (error) {
       if (typeof error === "object" && error !== null && "code" in error && (error as { code: number }).code === 4001) {
         message.error("Transaction rejected by user.");
@@ -114,78 +99,36 @@ export function CreateCollection() {
     }
   };
 
-  const handlePayoutClaim = async (values: Policy) => {
-    try {
-      const transaction = await signAndSubmitTransaction({
-        sender: account?.address,
-        data: {
-          function: `${MODULE_ADDRESS}::MicroInsuranceSystem::payout_claim`,
-          functionArguments: [values.policy_id],
-        },
-      });
-
-      await aptosClient().waitForTransaction({ transactionHash: transaction.hash });
-      message.success("Payout is Successful!");
-      fetchAllPoliciesByCreator();
-    } catch (error) {
-      if (typeof error === "object" && error !== null && "code" in error && (error as { code: number }).code === 4001) {
-        message.error("Transaction rejected by user.");
-      } else {
-        if (error instanceof Error) {
-          console.error(`Transaction failed: ${error.message}`);
-        } else {
-          console.error("Transaction failed: Unknown error");
-        }
-        console.error("Transaction Error:", error);
-      }
-      console.log("Error Paying Claim.", error);
-    }
-  };
-
-  const fetchAllPoliciesByCreator = async () => {
+  const fetchAllItemsListBy = async () => {
     try {
       const WalletAddr = account?.address;
       const payload: InputViewFunctionData = {
-        function: `${MODULE_ADDRESS}::MicroInsuranceSystem::view_policies_by_creator`,
+        function: `${MODULE_ADDRESS}::LostAndFoundRegistry::view_items_by_owner`,
         functionArguments: [WalletAddr],
       };
 
       const result = await aptosClient().view({ payload });
 
-      const policyList = result[0];
+      const itemList = result[0] as LostItem[];
 
-      if (Array.isArray(policyList)) {
-        setPolicyCreatedBy(
-          policyList.map((policy) => ({
-            claimable_amount: policy.claimable_amount,
-            creator: policy.creator,
-            customers: policy.customers.map(
-              (customer: {
-                customer: string;
-                is_claimed: boolean;
-                is_requested: boolean;
-                is_verified: boolean;
-                premium_paid: boolean;
-              }) => ({
-                customer: customer.customer,
-                is_claimed: customer.is_claimed,
-                is_requested: customer.is_requested,
-                is_verified: customer.is_verified,
-                premium_paid: customer.premium_paid,
-              }),
-            ),
-            description: policy.description,
-            policy_id: policy.policy_id,
-            id: policy.id,
-            max_claimable: policy.max_claimable,
-            premium_amount: policy.premium_amount,
-            total_premium_collected: policy.total_premium_collected,
-            type_of_policy: policy.type_of_policy,
-            yearly: policy.yearly,
+      if (Array.isArray(itemList)) {
+        setItemRegisterBy(
+          itemList.map((item) => ({
+            title: item.title,
+            description: item.description,
+            reward: item.reward,
+            is_claimed: item.is_claimed,
+            owner: item.owner,
+            finders: item.finders.map((finder) => ({
+              description: finder.description,
+              finder: finder.finder,
+              is_verified: finder.is_verified,
+            })),
+            unique_id: item.unique_id,
           })),
         );
       } else {
-        setPolicyCreatedBy([]);
+        setItemRegisterBy([]);
       }
     } catch (error) {
       console.error("Failed to get Policies by address:", error);
@@ -193,22 +136,22 @@ export function CreateCollection() {
   };
 
   useEffect(() => {
-    fetchAllPoliciesByCreator();
+    fetchAllItemsListBy();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [account, fetchAllPoliciesByCreator]);
+  }, [account, fetchAllItemsListBy]);
 
   return (
     <>
-      <LaunchpadHeader title="Create Insurance Policy" />
+      <LaunchpadHeader title="List Lost Items" />
       <div className="flex flex-col items-center justify-center px-4 py-2 gap-4 max-w-screen-xl mx-auto">
         <div className="w-full flex flex-col gap-y-4">
           <Card>
             <CardHeader>
-              <CardDescription>Create Policy</CardDescription>
+              <CardDescription>List You Lost Item</CardDescription>
             </CardHeader>
             <CardContent>
               <Form
-                onFinish={handleCreatePolicy}
+                onFinish={handleListLostItem}
                 labelCol={{
                   span: 4.04,
                 }}
@@ -223,40 +166,21 @@ export function CreateCollection() {
                   padding: "1.7rem",
                 }}
               >
-                <Form.Item name="type_of_policy" label="Type of Policy" rules={[{ required: true }]}>
-                  <Select>
-                    <Select.Option value="Car_Insurance">Car Insurance</Select.Option>
-                    <Select.Option value="Bike_Insurance">Bike Insurance</Select.Option>
-                    <Select.Option value="Home_Insurance">Home Insurance</Select.Option>
-                    <Select.Option value="Life_Insurance">Life Insurance</Select.Option>
-                    <Select.Option value="Term_Insurance">Term Insurance</Select.Option>
-                    <Select.Option value="Other_Insurance">Other Insurance</Select.Option>
-                  </Select>
+                <Form.Item label="Title" name="title" rules={[{ required: true }]}>
+                  <Input placeholder="Eg. Please, find my Dog" />
                 </Form.Item>
+
                 <Form.Item label="Description" name="description" rules={[{ required: true }]}>
-                  <Input placeholder="Enter Description" />
+                  <Input placeholder="Eg. Describe the lost item" />
                 </Form.Item>
 
-                <Form.Item label="Premium Amount" name="premium_amount" rules={[{ required: true }]}>
-                  <Input placeholder="Enter Your Premium Amount" />
-                </Form.Item>
-
-                <Form.Item label="Claim Amount" name="max_claimable" rules={[{ required: true }]}>
-                  <Input placeholder="Enter Your Claim Amount" />
-                </Form.Item>
-
-                <Form.Item label="Choose Premium type" name="yearly" rules={[{ required: true }]}>
-                  <Radio.Group onChange={onChange} value={value}>
-                    <Space direction="horizontal">
-                      <Radio value={true}>Yearly</Radio>
-                      <Radio value={false}>Only Once</Radio>
-                    </Space>
-                  </Radio.Group>
+                <Form.Item label="Reward" name="reward" rules={[{ required: true }]}>
+                  <Input placeholder="Enter Reward for finder" />
                 </Form.Item>
 
                 <Form.Item>
                   <Button variant="submit" size="lg" className="text-base w-full" type="submit">
-                    Create Insurance
+                    List Lost Item
                   </Button>
                 </Form.Item>
               </Form>
@@ -265,7 +189,7 @@ export function CreateCollection() {
 
           <Card>
             <CardHeader>
-              <CardDescription>Verify Claim</CardDescription>
+              <CardDescription>Verify Finders Claim</CardDescription>
             </CardHeader>
             <CardContent>
               <Form
@@ -284,11 +208,11 @@ export function CreateCollection() {
                   padding: "1.7rem",
                 }}
               >
-                <Form.Item label="Policy ID" name="policy_id" rules={[{ required: true }]}>
+                <Form.Item label="Item ID" name="item_id" rules={[{ required: true }]}>
                   <Input placeholder="eg. 1001" />
                 </Form.Item>
 
-                <Form.Item label="Customer Address" name="customer" rules={[{ required: true }]}>
+                <Form.Item label="Finders Address" name="finder" rules={[{ required: true }]}>
                   <Input placeholder="eg. 0x0" />
                 </Form.Item>
 
@@ -303,59 +227,25 @@ export function CreateCollection() {
 
           <Card>
             <CardHeader>
-              <CardDescription>Payout All Claim</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form
-                onFinish={handlePayoutClaim}
-                labelCol={{
-                  span: 4.04,
-                }}
-                wrapperCol={{
-                  span: 100,
-                }}
-                layout="horizontal"
-                style={{
-                  maxWidth: 1000,
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "0.5rem",
-                  padding: "1.7rem",
-                }}
-              >
-                <Form.Item label="Policy ID" name="policy_id" rules={[{ required: true }]}>
-                  <Input placeholder="eg. 1001" />
-                </Form.Item>
-
-                <Form.Item>
-                  <Button variant="submit" size="lg" className="text-base w-full" type="submit">
-                    Pay All Claims
-                  </Button>
-                </Form.Item>
-              </Form>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardDescription>Get Policies Created By You</CardDescription>
+              <CardDescription>Get Items Listed By You</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="p-2">
-                {policyCreatedBy.map((policy, index) => (
+                {itemRegisterBy.map((policy, index) => (
                   <Card key={index} className="mb-6 shadow-lg p-4">
-                    <p className="text-sm text-gray-500 mb-4">Policy ID: {policy.id}</p>
+                    <p className="text-sm text-gray-500 mb-4">Policy ID: {policy.unique_id}</p>
                     <Card style={{ marginTop: 16, padding: 16 }}>
                       {policy && (
                         <div>
                           <Paragraph>
-                            <strong>Type:</strong> {policy.type_of_policy}
+                            <strong>Title:</strong> {policy.title}
                           </Paragraph>
                           <Paragraph>
-                            <strong>Creator:</strong> <Tag>{policy.creator}</Tag>
+                            <strong>Creator:</strong> <Tag>{policy.owner}</Tag>
                           </Paragraph>
                           <Paragraph>
-                            <strong>Premium Amount:</strong>{" "}
-                            <Tag>{convertAmountFromOnChainToHumanReadable(policy.premium_amount, 8)}</Tag>
+                            <strong>Reward:</strong>{" "}
+                            <Tag>{convertAmountFromOnChainToHumanReadable(policy.reward, 8)}</Tag>
                           </Paragraph>
 
                           <Paragraph>
@@ -363,41 +253,21 @@ export function CreateCollection() {
                           </Paragraph>
 
                           <Paragraph>
-                            <strong>Claimable Amount:</strong>{" "}
-                            <Tag>{convertAmountFromOnChainToHumanReadable(policy.max_claimable, 8)}</Tag>
+                            <strong>Claimed:</strong> <Tag>{policy.is_claimed ? "Yes" : "No"}</Tag>
                           </Paragraph>
 
-                          <Paragraph>
-                            <strong>Total Premium Collected:</strong>{" "}
-                            <Tag>{convertAmountFromOnChainToHumanReadable(policy.total_premium_collected, 8)}</Tag>
-                          </Paragraph>
-
-                          <Paragraph>
-                            <strong>Payment Type:</strong> <Tag>{policy.customers.length}</Tag>
-                          </Paragraph>
-
-                          <Paragraph>
-                            <strong>Total Customers</strong> <Tag>{policy.yearly ? "Annually" : "Once"}</Tag>
-                          </Paragraph>
-
-                          {policy.customers.length > 0 ? (
+                          {policy.finders.length > 0 ? (
                             <Card style={{ marginTop: 16, padding: 16 }}>
-                              {policy.customers.map((customer, idx) => (
+                              {policy.finders.map((customer, idx) => (
                                 <div key={idx} className="mb-4">
                                   <Paragraph>
-                                    <strong>Customer:</strong> <Tag>{customer.customer}</Tag>
-                                  </Paragraph>
-                                  <Paragraph>
-                                    <strong>Claimed:</strong> <Tag>{customer.is_claimed ? "Yes" : "No"}</Tag>
-                                  </Paragraph>
-                                  <Paragraph>
-                                    <strong>Requested:</strong> <Tag>{customer.is_requested ? "Yes" : "No"}</Tag>
+                                    <strong>Finder:</strong> <Tag>{customer.finder}</Tag>
                                   </Paragraph>
                                   <Paragraph>
                                     <strong>Verified:</strong> <Tag>{customer.is_verified ? "Yes" : "No"}</Tag>
                                   </Paragraph>
                                   <Paragraph>
-                                    <strong>Premium Paid:</strong> <Tag>{customer.premium_paid ? "Yes" : "No"}</Tag>
+                                    <strong>description:</strong> {customer.description}
                                   </Paragraph>
                                 </div>
                               ))}

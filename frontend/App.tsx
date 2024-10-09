@@ -21,11 +21,11 @@ const router = createBrowserRouter([
         element: <Mint />,
       },
       {
-        path: "create-insurance",
+        path: "register-item",
         element: <CreateCollection />,
       },
       {
-        path: "buy-insurance",
+        path: "list-findings",
         element: <MyCollections />,
       },
     ],
