@@ -6,7 +6,7 @@ Welcome to the **Lost and Found Registry** frontend, a decentralized application
 
 ## 🔗 Links
 
-- **Live Demo**: [Lost and Found Registry](https://lost-and-found-registry.vercel.app/)
+- **Live Demo**: [Lost and Found Registry](https://aptos-lost-found-registry.vercel.app/)
 - **Smart Contract Explorer**: [Aptos Explorer](https://explorer.aptoslabs.com/account/0x7792db2bc2e3c11f4485060e1112fab7a9d88d971af5cc638a9a486d6fb7ca61/modules/code/LostAndFoundRegistry?network=testnet)
 
 ---
